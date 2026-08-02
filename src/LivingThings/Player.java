@@ -15,6 +15,7 @@ public class Player extends Entity {
     private int currentItemIndex;
     private Upgrades upgrades;
     private String deathCause;
+    private String lastTreasureFound = null;
 
     private BufferedImage image; // player sprite
 
@@ -239,5 +240,16 @@ public class Player extends Entity {
      */
     public Upgrades getUpgrades() {
         return upgrades;
+    }
+    public void setLastTreasureFound(String treasure){
+        lastTreasureFound = treasure;
+    }
+    
+    public String getLastTreasureFound(){
+        return lastTreasureFound;
+    }
+    
+    public void clearLastTreasureFound(){
+        lastTreasureFound = null;
     }
 }
