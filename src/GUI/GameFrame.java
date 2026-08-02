@@ -500,7 +500,7 @@ private void saveGame(){
 
             JOptionPane.showMessageDialog(
                     this, activeDungeon.getDungeonName() + " Completed!\n\n" + idol.getName() + " rescued!\n\n"
-                    + "You unlocked:" + unlocked + "!", "Dungeon Cleared!", JOptionPane.INFORMATION_MESSAGE
+                    + "You unlocked:\n" + unlocked + "!", "Dungeon Cleared!", JOptionPane.INFORMATION_MESSAGE
             );
 
             break;
