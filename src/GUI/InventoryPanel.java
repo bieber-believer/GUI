@@ -60,18 +60,35 @@ public class InventoryPanel extends JPanel {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        for(int i = 0; i < TRACKED_ITEMS.length; i++){
-            String itemName = TRACKED_ITEMS[i];
-            int quantity = countItemInInventory(player, itemName);
+       int number = 1; // number only the items the player has
 
-            JLabel itemLabel = new JLabel((i + 1) + ". " + itemName + " x " + quantity);
+        for(String itemName : TRACKED_ITEMS){
+        
+            int quantity = countItemInInventory(player, itemName);
+        
+            // don't display items with 0 quantity
+            if(quantity == 0)
+                continue;
+        
+            JLabel itemLabel =
+                    new JLabel(number + ". " + itemName + " x" + quantity);
+        
             itemLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        
             panel.add(itemLabel);
-            panel.add(Box.createRigidArea(new Dimension(0, 4)));
+            panel.add(Box.createRigidArea(new Dimension(0,4)));
+        
+            number++;
         }
 
-        return panel;
-    }
+        // if the player has no items
+            if(number == 1){
+                JLabel empty = new JLabel("No items.");
+                empty.setFont(new Font("SansSerif", Font.PLAIN,14));
+                panel.add(empty);
+            }
+            return panel;
+            }
 
     private JPanel buildBackButton(InventoryListener listener){
         JButton backButton = new JButton("Back");
