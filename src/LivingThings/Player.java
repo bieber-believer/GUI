@@ -64,8 +64,8 @@ public class Player extends Entity {
         Item currentItem = getCurrentItem();
         boolean wouldBeFatal = (getHp() - amount) <= 0;
 
-        if(wouldBeFatal && currentItem.getName().equalsIgnoreCase("Choco-mint Ice Cream")
-            && currentItem != null){
+        if(wouldBeFatal && currentItem != null
+                && currentItem.getName().equalsIgnoreCase("Choco-mint Ice Cream")){
             consumeCurrentItem(); // use the choco ming
             heal(getMaxHP()); // heal max hp
             return;
