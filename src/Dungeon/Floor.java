@@ -142,6 +142,7 @@ public class Floor {
                     e.printStackTrace();
                 }
                 player.addItem(new Item("Noppo Bread"));
+                player.setLastTreasureFound("Noppo Bread!");
             } else {
                 int goldAmount = random.nextInt(91) + 10; // 91 possible values bc 10 to 100
                 target.setSymbol('g');
@@ -151,6 +152,7 @@ public class Floor {
                     e.printStackTrace();
                 }
                 target.setGoldValue(goldAmount);
+                player.setLastTreasureFound(goldAmount + " GP!");
             }
             return;
         }
@@ -340,6 +342,10 @@ public class Floor {
 
     public int getFloorNumber() {
         return floorNumber;
+    }
+
+    public int getDungeonNumber() {
+        return dungeonNumber;
     }
 
     //------------------------
