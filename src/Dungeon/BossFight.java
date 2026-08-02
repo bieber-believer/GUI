@@ -149,9 +149,11 @@ public class BossFight extends Floor{
         boolean triggered = (yohaneOn1 && lailapsOn2) || (yohaneOn2 && lailapsOn1);
         if(!triggered) return;
 
-        setTileSymbol(switchRow1, switchCol1, '.'); // inherited
-        setTileSymbol(switchRow2, switchCol2, '.');
-        switchTriggerCount++;
+        if(triggered){
+            setTileSymbol(switchRow1, switchCol1, '.'); // inherited
+            setTileSymbol(switchRow2, switchCol2, '.');
+            switchTriggerCount++;
+        }
 
         if(switchTriggerCount >= 3){
             breakBarrier();
