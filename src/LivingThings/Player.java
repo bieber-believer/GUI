@@ -2,6 +2,7 @@ package LivingThings;
 
 import Dungeon.Floor;
 import Items.Item;
+import Items.Upgrades;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -12,6 +13,7 @@ public class Player extends Entity {
     private int gold;
     private ArrayList<Item> inventory;
     private int currentItemIndex;
+    private Upgrades upgrades;
     private boolean isAlive;
     private String deathCause;
 
@@ -22,6 +24,7 @@ public class Player extends Entity {
         this.gold = 0;
         this.inventory = new ArrayList<Item>();
         this.currentItemIndex = -1; // -1 if inventory is empty
+        this.upgrades = new Upgrades();
         this.isAlive = true;
         this.deathCause = null;
     }
@@ -53,11 +56,16 @@ public class Player extends Entity {
      * @param cause what dealt the damage (e.g. "Bat", "Heat Tile")
      */
     public void takeDamage(float amount, String cause){
+        //check for bat tamer upgrade
+        if(cause.equalsIgnoreCase("Bat") && upgrades.hasBatTamer())
+            amount = 0.5f;
+
         //check for choco minnt and if she has use it
         Item currentItem = getCurrentItem();
         boolean wouldBeFatal = (getHp() - amount) <= 0;
 
-        if(wouldBeFatal && currentItem.getName().equalsIgnoreCase("Choco-mint Ice Cream")){
+        if(wouldBeFatal && currentItem.getName().equalsIgnoreCase("Choco-mint Ice Cream")
+            && currentItem != null){
             consumeCurrentItem(); // use the choco ming
             heal(getMaxHP()); // heal max hp
             return;
@@ -80,6 +88,15 @@ public class Player extends Entity {
 
     public String getDeathCause() {
         return deathCause;
+    }
+
+    /**
+     * Increases Player's max HP by the given amount
+     *
+     * @param amount amount to increase max HP by
+     */
+    public void increaseMaxHP(float amount){
+        setMaxHP(getMaxHP() + amount);
     }
 
     //------------------------
@@ -213,5 +230,14 @@ public class Player extends Entity {
      */
     public ArrayList<Item> getInventory() {
         return this.inventory;
+    }
+
+    /**
+     * Returns Player's current upgrades
+     *
+     * @return Player's upgrades for this playthrough
+     */
+    public Upgrades getUpgrades() {
+        return upgrades;
     }
 }

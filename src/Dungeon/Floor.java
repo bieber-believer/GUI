@@ -170,9 +170,16 @@ public class Floor {
                 e.printStackTrace();
             }
 
-            if(digDamage > 0)
+            if(digDamage > 0 && !player.getUpgrades().hasShovelUpgrade())
                 player.takeDamage(digDamage, "Spike Wall");;
 
+            return;
+        }
+
+        //let yohane be like jesus (walk on water)
+        if(target.getSymbol() == 'w' && player.getUpgrades().hasAirShoes()){
+            player.setRow(newRow);
+            player.setCol(newCol);
             return;
         }
 
@@ -199,6 +206,9 @@ public class Floor {
     }
 
     public void checkHeatDamage(){
+        //if she has air shoes
+        if(player.getUpgrades().hasAirShoes()) return;
+        
         Tile currentTile = map[player.getRow()][player.getCol()];
         if(currentTile.getDamage() > 0)
             player.takeDamage(currentTile.getDamage(), "Heat Tile");
