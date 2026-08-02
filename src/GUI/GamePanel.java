@@ -256,6 +256,13 @@ public class GamePanel extends JPanel implements KeyListener {
         }
         repaint();
 
+        if(player.getLastTreasureFound() != null){
+            JOptionPane.showMessageDialog(
+                    this, "Treasure!\n\nFound:\n" + player.getLastTreasureFound()
+            );
+            player.clearLastTreasureFound();
+        }
+
         // check if player has reached exit first
         checkForFloorComplete();
 
