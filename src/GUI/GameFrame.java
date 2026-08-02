@@ -299,17 +299,48 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
         saveProgressToOverallStats();
 
         for(Idol idol : idolsToRescue){
-            if(idol.getDungeonName().equals(activeDungeon.getDungeonName())){
-                idol.rescue();
-                JOptionPane.showMessageDialog(this,
-                        activeDungeon.getDungeonName() + " Completed!\n" + idol.getName() + " rescued!",
-                        "Dungeon Cleared!", JOptionPane.INFORMATION_MESSAGE);
-                break;
-            }
-        }
+        if(idol.getDungeonName().equals(activeDungeon.getDungeonName())){
 
-        showChoosePanel();
+            idol.rescue();
+
+            // determine what this idol unlocks
+            String unlocked = "";
+
+            switch(idol.getName()){
+                case "Kanan":
+                    unlocked = "Shovel Upgrade";
+                    break;
+                case "Riko":
+                    unlocked = "Bat Tamer";
+                    break;
+                case "You":
+                    unlocked = "Air Shoes";
+                    break;
+                case "Mari":
+                    unlocked = "Stewshine";
+                    break;
+                case "Chika":
+                    unlocked = "Mikan Mochi";
+                    break;
+                case "Dia":
+                    unlocked = "Kurosawa Macha";
+                    break;
+                case "Ruby":
+                    unlocked = "Choco-Mint Ice Cream";
+                    break;
+            }
+
+            JOptionPane.showMessageDialog(
+                    this, activeDungeon.getDungeonName() + " Completed!\n\n" + idol.getName() + " rescued!\n\n"
+                    + "You unlocked:\n" + unlocked + "!", "Dungeon Cleared!", JOptionPane.INFORMATION_MESSAGE
+            );
+
+            break;
+        }
     }
+
+    showChoosePanel();
+}
 
     //------------------------
     // PlayerDeathListener
