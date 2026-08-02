@@ -252,4 +252,21 @@ public class Player extends Entity {
     public void clearLastTreasureFound(){
         lastTreasureFound = null;
     }
+
+    /**
+     * Sets Yohane's gold directly.
+     *
+     * @param gold amount of gold
+     */
+    public void setGold(int gold){
+        this.gold = gold;
+    }
+    
+    /**
+     * Clears the inventory.
+     */
+    public void clearInventory(){
+        inventory.clear();
+        currentItemIndex = -1;
+    }
 }
