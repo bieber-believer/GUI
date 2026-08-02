@@ -246,7 +246,7 @@ public class Floor {
             continue;
 
             // only move if passable and water
-            if(map[newRow][newCol].isPassable() || map[newRow][newCol].getSymbol() == 'w')){
+            if(map[newRow][newCol].isPassable() || map[newRow][newCol].getSymbol() == 'w'){
               bat.setRow(newRow);
               bat.setCol(newCol);
             }
