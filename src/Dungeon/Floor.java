@@ -208,7 +208,7 @@ public class Floor {
     public void checkHeatDamage(){
         //if she has air shoes
         if(player.getUpgrades().hasAirShoes()) return;
-        
+
         Tile currentTile = map[player.getRow()][player.getCol()];
         if(currentTile.getDamage() > 0)
             player.takeDamage(currentTile.getDamage(), "Heat Tile");
