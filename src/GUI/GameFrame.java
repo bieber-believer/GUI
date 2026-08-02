@@ -17,7 +17,7 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
         ChooseDungeonPanel.ChooseDungeonListener,
         GamePanel.FloorCompleteListener, GamePanel.PlayerDeathListener,
         CreditsPanel.CreditsListener, StatusPanel.StatusListener,
-        InventoryPanel.InventoryListener{
+        InventoryPanel.InventoryListener, ShopPanel.ShopListener{
      private CardLayout cardLayout;
      private JPanel cardContainer; // holds every screen; card layout shows one at a time
 
@@ -27,6 +27,7 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
     private static final String CREDITS_PANEL = "credits";
     private static final String STATUS_PANEL = "status";
     private static final String INVENTORY_PANEL = "inventory";
+    private static final String SHOP_PANEL = "shop";
 
     private Player player;
     private OverallStats overallStats;
@@ -204,8 +205,10 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
 
     @Override
     public void onShop(){
-        // TODO: hook this up once ShopPanel/Shop are implemented
-        JOptionPane.showMessageDialog(this, "Hanamaru's shop isn't implemented yet!");
+        ShopPanel shopPanel = new ShopPanel(player, overallStats, this);
+        cardContainer.add(shopPanel, SHOP_PANEL);
+        pack();
+        cardLayout.show(cardContainer, SHOP_PANEL);
     }
 
     //------------------------
@@ -229,7 +232,7 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
         }
 
         if(gamePanel != null){
-            gamePanel.stopTimers();     // stop the OLD floor's bat/heat timers first!
+            gamePanel.stopTimers();     // stop the old floor's bat/heat timers first!
             cardContainer.remove(gamePanel);
         }
 
