@@ -81,7 +81,7 @@ public class Tile {
                 this.isPassable = true;
                 this.isDiggable = false;
                 this.damage = 0.0f;
-                image = ImageIO.read(getClass().getResourceAsStream("/tiles/border.png")); // change to switch sprite
+                image = ImageIO.read(getClass().getResourceAsStream("/tiles/switch.png")); // change to switch sprite
                 break;
             case 'Y': // yohane tile
             case 'L': // lailaps tile
