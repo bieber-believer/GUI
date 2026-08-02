@@ -79,4 +79,12 @@ public class Idol {
     public void addRescueCount(){
         this.rescueCount++;
     }
+
+    public void setRescuedOnce(boolean rescued){
+        this.isRescuedOnce = rescued;
+    }
+
+    public void setRescueCount(int rescueCount){
+        this.rescueCount = rescueCount;
+    }
 }
