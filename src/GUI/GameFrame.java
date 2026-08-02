@@ -59,6 +59,10 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
 
         overallStats = new OverallStats(); // TODO: later, load this from a save file instead
 
+        if(SaveManager.saveExists()){
+            hasSavedGame = true;
+        }
+
         showMainMenu();
         setVisible(true);
     }
@@ -78,6 +82,8 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
         // player/dungeons/idolsToRescue are still sitting in memory from
         // before "Save and Quit" was pressed (which only happens from the
         // dungeon hub), so we can just show that hub again as-is
+        loadGame();
+        hasSavedGame = true;
         showChoosePanel();
     }
 
@@ -181,6 +187,7 @@ private void saveGame(){
         // PLAYER
         //------------------------
         out.println("HP=" + player.getHp());
+        out.println("MAXHP=" + player.getMaxHP());
         out.println("GOLD=" + player.getGold());
         out.println("BREAD=" + countItemInInventory("Noppo Bread"));
         out.println("TEARS=" + countItemInInventory("Tears of a Fallen Angel"));
@@ -211,6 +218,8 @@ private void saveGame(){
         //------------------------
         for(Idol idol : idolsToRescue){
             out.println("IDOL=" + idol.getName());
+            out.println("RESCUED=" + idol.isRescuedOnce());
+            out.println("COUNT=" + idol.getRescueCount());
         }
 
         out.close();
@@ -219,6 +228,105 @@ private void saveGame(){
         e.printStackTrace();
     }
 }
+
+    private void loadGame(){
+        try{
+            BufferedReader in = SaveManager.getReader();
+
+            //------------------------
+            // PLAYER
+            //------------------------
+            float hp = Float.parseFloat(in.readLine().split("=")[1]);
+            float maxHP = Float.parseFloat(in.readLine().split("=")[1]);
+            int gold = Integer.parseInt(in.readLine().split("=")[1]);
+            int bread = Integer.parseInt(in.readLine().split("=")[1]);
+            int tears = Integer.parseInt(in.readLine().split("=")[1]);
+
+            player = new Player(hp, maxHP);
+            player.loadPlayerImage();
+            player.setGold(gold);
+
+            for(int i = 0; i < bread; i++){
+                player.addItem(new Item("Noppo Bread"));
+            }
+
+            for(int i = 0; i < tears; i++){
+                player.addItem(new Item("Tears of a Fallen Angel"));
+            }
+
+            //------------------------
+            // UPGRADES
+            //------------------------
+            player.getUpgrades().setHasShovelUpgrade(
+                    Boolean.parseBoolean(in.readLine().split("=")[1]));
+
+            player.getUpgrades().setHasBatTamer(
+                    Boolean.parseBoolean(in.readLine().split("=")[1]));
+
+            player.getUpgrades().setHasAirShoes(
+                    Boolean.parseBoolean(in.readLine().split("=")[1]));
+
+            player.getUpgrades().setHasStewshine(
+                    Boolean.parseBoolean(in.readLine().split("=")[1]));
+
+            player.getUpgrades().setHasMikanMochi(
+                    Boolean.parseBoolean(in.readLine().split("=")[1]));
+
+            player.getUpgrades().setHasKurosawaMacha(
+                    Boolean.parseBoolean(in.readLine().split("=")[1]));
+
+            player.getUpgrades().setHasChocoMintOnce(
+                    Boolean.parseBoolean(in.readLine().split("=")[1]));
+
+            player.getUpgrades().setHasTearsOnce(
+                    Boolean.parseBoolean(in.readLine().split("=")[1]));
+
+            //------------------------
+            // DUNGEONS
+            //------------------------
+            dungeons = new ArrayList<Dungeon>();
+            idolsToRescue = new ArrayList<Idol>();
+
+            for(int i = 0; i < 3; i++){
+
+                String dungeonName = in.readLine().split("=")[1];
+                int dungeonOrder = Integer.parseInt(in.readLine().split("=")[1]);
+                boolean cleared = Boolean.parseBoolean(in.readLine().split("=")[1]);
+
+                Dungeon dungeon = new Dungeon(dungeonName, dungeonOrder);
+                dungeon.setCleared(cleared);
+
+                dungeons.add(dungeon);
+            }
+
+            //------------------------
+            // IDOLS
+            //------------------------
+            for(int i = 0; i < 3; i++){
+
+                String idolName = in.readLine().split("=")[1];
+                boolean rescued = Boolean.parseBoolean(in.readLine().split("=")[1]);
+                int count = Integer.parseInt(in.readLine().split("=")[1]);
+
+                for(Idol idol : overallStats.getAqours()){
+
+                    if(idol.getName().equals(idolName)){
+
+                        idol.setRescuedOnce(rescued);
+                        idol.setRescueCount(count);
+
+                        idolsToRescue.add(idol);
+                        break;
+                    }
+                }
+            }
+
+            in.close();
+
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+    }
 
     private int countItemInInventory(String itemName){
         for(Item item : player.getInventory()){
@@ -277,7 +385,14 @@ private void saveGame(){
         saveProgressToOverallStats();
         saveGame();
         hasSavedGame = true;
-        System.exit(0);
+        JOptionPane.showMessageDialog(
+                this,
+                "Game saved successfully!",
+                "Save Complete",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+        showMainMenu();
     }
 
     @Override
@@ -379,6 +494,9 @@ private void saveGame(){
                 case "Ruby":
                     unlocked = "Choco-Mint Ice Cream";
                     break;
+                case "Hanamaru":
+                    unlocked = "Hanamaru's Shop";
+                    break;
             }
 
             JOptionPane.showMessageDialog(
@@ -463,37 +581,4 @@ private void saveGame(){
         showChoosePanel();
     }
 
-    private void saveGame() {
-    try {
-        PrintWriter out = SaveManager.getWriter();
-
-        // PLAYER
-        out.println(player.getHp());
-        out.println(player.getGold());
-        out.println(countItemInInventory("Noppo Bread"));
-        out.println(countItemInInventory("Tears of a Fallen Angel"));
-
-        // UPGRADES
-        out.println(player.getUpgrades().hasShovelUpgrade());
-        out.println(player.getUpgrades().hasBatTamer());
-        out.println(player.getUpgrades().hasAirShoes());
-        out.println(player.getUpgrades().hasStewshine());
-        out.println(player.getUpgrades().hasMikanMochi());
-        out.println(player.getUpgrades().hasKurosawaMacha());
-        out.println(player.getUpgrades().hasChocoMintOnce());
-        out.println(player.getUpgrades().hasTearsOnce());
-
-        // DUNGEONS
-        for(Dungeon dungeon : dungeons){
-            out.println(dungeon.getDungeonName());
-            out.println(dungeon.getDungeonOrder());
-            out.println(dungeon.isCleared());
-        }
-
-        out.close();
-
-    } catch(IOException e){
-        e.printStackTrace();
-    }
-}
 }
