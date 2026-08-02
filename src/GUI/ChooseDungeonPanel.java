@@ -53,7 +53,12 @@ public class ChooseDungeonPanel extends JPanel {
         JLabel lailapsLabel = new JLabel(lailapsLine);
         lailapsLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
 
-        String itemName = (player.getCurrentItem() == null) ? "N/A" : player.getCurrentItem().getName();
+        String itemName;
+        if(player.getCurrentItem() == null){
+            itemName = "N/A";
+        }else{
+            itemName = player.getCurrentItem().getName() + " x" + player.getCurrentItem().getQuantity();
+        }
         JLabel statsLabel = new JLabel(
                 "HP: " + player.getHp() + "/" + player.getMaxHP()
                         + "      Gold: " + player.getGold()
