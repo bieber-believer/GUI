@@ -1,0 +1,317 @@
+package GUI;
+
+import Dungeon.Dungeon;
+import Dungeon.Floor;
+import Game.OverallStats;
+import Items.Item;
+import LivingThings.Idol;
+import LivingThings.Player;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+
+public class GameFrame extends JFrame implements MenuPanel.MenuListener,
+        ChooseDungeonPanel.ChooseDungeonListener,
+        GamePanel.FloorCompleteListener, GamePanel.PlayerDeathListener,
+        CreditsPanel.CreditsListener, StatusPanel.StatusListener,
+        InventoryPanel.InventoryListener{
+     private CardLayout cardLayout;
+     private JPanel cardContainer; // holds every screen; card layout shows one at a time
+
+    private static final String MENU_PANEL = "menu";
+    private static final String CHOOSE_PANEL = "choose";
+    private static final String GAME_PANEL = "game";
+    private static final String CREDITS_PANEL = "credits";
+    private static final String STATUS_PANEL = "status";
+    private static final String INVENTORY_PANEL = "inventory";
+
+    private Player player;
+    private OverallStats overallStats;
+    private ArrayList<Dungeon> dungeons;   // the 3 dungeons for this playthrough
+    private ArrayList<Idol> idolsToRescue; // the idols tied to those dungeons
+
+    private Dungeon activeDungeon; // whichever dungeon the player is currently inside
+    private GamePanel gamePanel;   // the panel currently showing activeDungeon's floor
+
+
+    private boolean hasSavedGame = false;      // true after "Save and Quit"
+    private boolean hasCompletedOrDied = false; // true after any death or siren pwned
+
+    public GameFrame(){
+        setTitle("Yohane The Parhelion!");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
+
+        cardLayout = new CardLayout();
+        cardContainer = new JPanel(cardLayout);
+        add(cardContainer);
+
+        overallStats = new OverallStats(); // TODO: later, load this from a save file instead
+
+        showMainMenu();
+        setVisible(true);
+    }
+
+    //------------------------
+    // Main Menu
+    //------------------------
+    private void showMainMenu(){
+        MenuPanel menuPanel = new MenuPanel(hasSavedGame, hasCompletedOrDied, this);
+        cardContainer.add(menuPanel, MENU_PANEL);
+        pack();
+        cardLayout.show(cardContainer, MENU_PANEL);
+    }
+
+    @Override
+    public void onContinue(){
+        // player/dungeons/idolsToRescue are still sitting in memory from
+        // before "Save and Quit" was pressed (which only happens from the
+        // dungeon hub), so we can just show that hub again as-is
+        showChoosePanel();
+    }
+
+    @Override
+    public void onNewGame(){
+        hasSavedGame = false; // discards any previous save
+        startNewPlaythrough();
+    }
+
+    @Override
+    public void onStatus(){
+        StatusPanel statusPanel = new StatusPanel(overallStats, this);
+        cardContainer.add(statusPanel, STATUS_PANEL);
+        pack();
+        cardLayout.show(cardContainer, STATUS_PANEL);
+    }
+
+    @Override
+    public void onCredits(){
+        CreditsPanel creditsPanel = new CreditsPanel(this);
+        cardContainer.add(creditsPanel, CREDITS_PANEL);
+        pack();
+        cardLayout.show(cardContainer, CREDITS_PANEL);
+    }
+
+    @Override
+    public void onBack(){
+        showMainMenu();
+    }
+
+    @Override
+    public void onQuit(){
+        System.exit(0);
+    }
+
+    //------------------------
+    // Starting/loading a playthrough
+    //------------------------
+
+    /**
+     * Sets up a fresh playthrough: new Player, a map pool,
+     * and 3 randomly chosen idols to rescue.
+     */
+    private void startNewPlaythrough(){
+        player = new Player(3f, 3f); // starting HP
+        player.loadPlayerImage();
+
+        // carry gold and saved items
+        player.addGold(overallStats.getGold());
+        for(int i = 0; i < overallStats.getNoppoBreadCount(); i++){
+            player.addItem(new Item("Noppo Bread"));
+        }
+        for(int i = 0; i < overallStats.getTearsOfAngelCount(); i++){
+            player.addItem(new Item("Tears of a Fallen Angel"));
+        }
+
+        Dungeon.resetMapPool(); // fresh shuffled 7 maps so floors don't repeat
+
+        // randomly pick 3 of the 8 idols to be rescued this playthrough
+        ArrayList<Idol> shuffled = new ArrayList<>(overallStats.getAqours());
+        Collections.shuffle(shuffled);
+
+        idolsToRescue = new ArrayList<>();
+        dungeons = new ArrayList<>();
+        for(int i = 0; i < 3; i++){
+            Idol idol = shuffled.get(i);
+            idolsToRescue.add(idol);
+            // dungeonOrder (1, 2, 3) controls how many floors that dungeon has
+            dungeons.add(new Dungeon(idol.getDungeonName(), i + 1));
+        }
+
+        showChoosePanel();
+    }
+
+    /**
+     * (Re)builds the hub screen so it reflects the player's current
+     * HP/gold/item and which dungeons are cleared, then shows it.
+     */
+    private void showChoosePanel(){
+        ChooseDungeonPanel chooseDungeonPanel = new ChooseDungeonPanel(player, dungeons, overallStats, this);
+        cardContainer.add(chooseDungeonPanel, CHOOSE_PANEL);
+
+        pack(); // resizes the window to fit whichever card is showing
+        cardLayout.show(cardContainer, CHOOSE_PANEL);
+    }
+
+    //------------------------
+    // helpers
+    //------------------------
+    private void saveProgressToOverallStats(){
+        overallStats.setGold(player.getGold());
+        overallStats.setNoppoBreadCount(countItemInInventory("Noppo Bread"));
+        overallStats.setTearsOfAngelCount(countItemInInventory("Tears of a Fallen Angel"));
+    }
+
+    private int countItemInInventory(String itemName){
+        for(Item item : player.getInventory()){
+            if(item.getName().equals(itemName))
+                return item.getQuantity();
+        }
+        return 0; // player doesn't have that item
+    }
+
+    //------------------------
+    // ChooseDungeonListener — reacting tscreen buttons
+    //------------------------
+    @Override
+    public void onDungeonSelected(Dungeon dungeon){
+        loadFloor(dungeon);
+    }
+
+    @Override
+    public void onFaceSiren(){
+        // TODO: hook this up once BossFight/Siren are implemented
+        JOptionPane.showMessageDialog(this, "The Siren battle isn't implemented yet!");
+    }
+
+    @Override
+    public void onInventory(){
+        InventoryPanel inventoryPanel = new InventoryPanel(player, this);
+        cardContainer.add(inventoryPanel, INVENTORY_PANEL);
+        pack();
+        cardLayout.show(cardContainer, INVENTORY_PANEL);
+    }
+
+    @Override
+    public void onSaveAndQuit(){
+        // TODO: implement actual saving before this exits
+        hasSavedGame = true;
+        System.exit(0);
+    }
+
+    @Override
+    public void onShop(){
+        // TODO: hook this up once ShopPanel/Shop are implemented
+        JOptionPane.showMessageDialog(this, "Hanamaru's shop isn't implemented yet!");
+    }
+
+    //------------------------
+    // Loading floors
+    //------------------------
+
+    /**
+     * Loads the given dungeon's CURRENT floor into a fresh GamePanel and
+     * switches to it. Used both when first entering a dungeon and when
+     * moving on to that dungeon's next floor.
+     */
+    private void loadFloor(Dungeon dungeon){
+        this.activeDungeon = dungeon;
+        Floor floor = dungeon.getCurrentFloor();
+
+        try {
+            floor.loadMap(player);
+        } catch (IOException e) {
+            System.out.println("Couldn't load floor: " + e.getMessage());
+            return;
+        }
+
+        if(gamePanel != null){
+            gamePanel.stopTimers();     // stop the OLD floor's bat/heat timers first!
+            cardContainer.remove(gamePanel);
+        }
+
+        gamePanel = new GamePanel(floor);
+        gamePanel.setFloorCompleteListener(this);
+        gamePanel.setPlayerDeathListener(this);
+        cardContainer.add(gamePanel, GAME_PANEL);
+
+        pack();
+        cardLayout.show(cardContainer, GAME_PANEL);
+        gamePanel.requestFocusInWindow(); // so WASD works immediately
+    }
+
+    //------------------------
+    // FloorCompleteListener — reacting to reaching the exit tile
+    //------------------------
+    @Override
+    public void onFloorComplete(){
+        if(activeDungeon.goToNextFloor()){
+            // more floors left in this dungeon
+            JOptionPane.showMessageDialog(this, "Floor Complete!", "Floor Cleared",
+                    JOptionPane.INFORMATION_MESSAGE);
+            loadFloor(activeDungeon);
+        } else {
+            // that was the LAST floor — the whole dungeon is cleared
+            onDungeonComplete();
+        }
+    }
+
+    /**
+     * Marks the dungeon as cleared, rescues its matching idol, shows the
+     * victory popup, and returns to the hub screen.
+     */
+    private void onDungeonComplete(){
+        activeDungeon.setCleared(true);
+        gamePanel.stopTimers(); // dungeon is done, stop its timers too
+
+        saveProgressToOverallStats();
+
+        for(Idol idol : idolsToRescue){
+            if(idol.getDungeonName().equals(activeDungeon.getDungeonName())){
+                idol.rescue();
+                JOptionPane.showMessageDialog(this,
+                        activeDungeon.getDungeonName() + " Completed!\n" + idol.getName() + " rescued!",
+                        "Dungeon Cleared!", JOptionPane.INFORMATION_MESSAGE);
+                break;
+            }
+        }
+
+        showChoosePanel();
+    }
+
+    //------------------------
+    // PlayerDeathListener
+    //------------------------
+    @Override
+    public void onPlayerDeath(String cause){
+        gamePanel.stopTimers(); // stop bat/heat timers immediately, game is over
+
+        saveProgressToOverallStats(); // gold/items survive a game over per the spec
+        overallStats.addGamesLost();
+        hasCompletedOrDied = true; // unlocks "New Game+" on the main menu from now on
+        hasSavedGame = false;      // a dead playthrough can't be "continued"
+
+        Object[] options = { "Back to Main Menu" };
+        JOptionPane.showOptionDialog(this,
+                "You Died!\nKilled by: " + cause,
+                "Game Over",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.ERROR_MESSAGE,
+                null,
+                options,
+                options[0]);
+
+        showMainMenu();
+    }
+
+    //------------------------
+    // Inventory
+    //----------------------
+    @Override
+    public void onBackToHub(){
+        showChoosePanel();
+    }
+}
