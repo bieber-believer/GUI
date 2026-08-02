@@ -53,6 +53,16 @@ public class Player extends Entity {
      * @param cause what dealt the damage (e.g. "Bat", "Heat Tile")
      */
     public void takeDamage(float amount, String cause){
+        //check for choco minnt and if she has use it
+        Item currentItem = getCurrentItem();
+        boolean wouldBeFatal = (getHp() - amount) <= 0;
+
+        if(wouldBeFatal && currentItem.getName().equalsIgnoreCase("Choco-mint Ice Cream")){
+            consumeCurrentItem(); // use the choco ming
+            heal(getMaxHP()); // heal max hp
+            return;
+        }
+
         super.takeDamage(amount); // reuses Entity's take damage
         if(!isAlive()){
             this.deathCause = cause;
@@ -154,6 +164,23 @@ public class Player extends Entity {
     }
 
     /**
+     * Decrements the quantity of whatever item is currently on hand,
+     * removing it from the inventory entirely once that hits 0. Shared by
+     * useCurrentItem() (manual use) and the Choco-mint Ice Cream auto-save,
+     * so both "use an item" the same way.
+     */
+    private void consumeCurrentItem(){
+        Item item = getCurrentItem();
+        if(item == null) return;
+
+        item.decrementQty();
+        if(item.getQuantity() == 0){
+            inventory.remove(item);
+            currentItemIndex = -1;
+        }
+    }
+
+    /**
      * Use the item current on hand and decremnt its quantity. If item qty drops
      * to 0 then it is removed from the inventory and current item on hand becomes
      * N/A
@@ -167,6 +194,9 @@ public class Player extends Entity {
 
         if(item.getName().equalsIgnoreCase("Noppo Bread")) {
             heal((float) 0.5); // the possible item we can get rn is only noppo bread for mco1
+        } else if(item.getName().equalsIgnoreCase("Tears of a Fallen Angel")){
+            heal(0.5f);
+            consumeCurrentItem();
         }
 
         item.decrementQty();
