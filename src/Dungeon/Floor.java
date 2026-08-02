@@ -238,11 +238,11 @@ public class Floor {
     //------------------------
     // helper methods
     //------------------------
-    private boolean isInsideMap(int row, int col){
+    public boolean isInsideMap(int row, int col){
         return row >= 0 && row < map.length && col >= 0 && col < map[0].length;
     }
 
-    private Bat getBatAt(int row, int col){
+    public Bat getBatAt(int row, int col){
         for(Bat bat : bats){
             if(bat.getRow() == row && bat.getCol() == col)
                 return bat;
@@ -250,7 +250,7 @@ public class Floor {
         return null; // bat not found
     }
 
-    private boolean isAdjacent(int r1, int c1, int r2, int c2, boolean diagonal){
+    public boolean isAdjacent(int r1, int c1, int r2, int c2, boolean diagonal){
         int rowDiff = Math.abs(r1 - r2);
         int colDiff = Math.abs(c1 - c2);
         if(rowDiff == 0 && colDiff == 0) return false; // same tile, not "adjacent"
