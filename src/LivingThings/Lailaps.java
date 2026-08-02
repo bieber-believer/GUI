@@ -18,77 +18,23 @@ public class Lailaps extends Entity{
     }
 
     public void loadImage(){
-        try{
+        try {
             image = ImageIO.read(getClass().getResourceAsStream("/entities/lailaps.png"));
-        }catch (IOException e){
-            System.out.println("Couldn't load bat sprite: " + e.getMessage());
+        } catch (IOException e){
+            System.out.println("Couldn't load Lailaps sprite: " + e.getMessage());
         }
     }
 
-    /**
-     * Returns Lailaps' current row position
-     *
-     *  @return current row
-     */
-    public int getRow() {
-        return this.row;
+    public BufferedImage getImage() {
+        return image;
     }
 
     /**
-     * Returns Lailaps' current column position
+     * Checks whether Lailaps is still alive
      *
-     *  @return current column
-     */
-    public int getCol() {
-        return this.col;
-    }
-
-    /**
-     * Returns Lailaps' current HP
-     *
-     * @return current HP
-     */
-    public float getHp() {
-        return this.hp;
-    }
-
-    /**
-     * Returns Lailaps' max HP
-     *
-     * @return max HP
-     */
-    public float getMaxHp() {
-        return this.maxHp;
-    }
-
-    /**
-     * Sets Lailaps' position
-     *
-     * @param row new row position
-     * @param col new column position
-     */
-    public void setPosition(int row, int col){
-        this.row = row;
-        this.col = col;
-    }
-
-    /**
-     * Reduces Lailaps' HP depending on damage
-     *
-     * @param damage amount of damage taken
-     */
-    public void takeDamage(float damage){
-        this.hp -= damage;
-        if(this.hp < 0)
-            this.hp = 0; // to make sure hp is not gonna be a - value
-    }
-
-    /**
-     * Checks if Lailaps is still alive
-     *
-     * @return true if HP is above 0, false if not
+     * @return true if alive, false otherwise
      */
     public boolean isAlive(){
-        return this.hp > 0;
+        return getHp() > 0;
     }
 }
