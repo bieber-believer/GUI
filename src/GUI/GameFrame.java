@@ -24,8 +24,8 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
         CreditsPanel.CreditsListener, StatusPanel.StatusListener,
         InventoryPanel.InventoryListener, ShopPanel.ShopListener,
         BossFightPanel.GameWonListener, BossFightPanel.GameOverListener{
-     private CardLayout cardLayout;
-     private JPanel cardContainer; // holds every screen; card layout shows one at a time
+    private CardLayout cardLayout;
+    private JPanel cardContainer; // holds every screen; card layout shows one at a time
 
     private static final String MENU_PANEL = "menu";
     private static final String CHOOSE_PANEL = "choose";
@@ -43,7 +43,6 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
 
     private Dungeon activeDungeon; // whichever dungeon the player is currently inside
     private GamePanel gamePanel;   // the panel currently showing activeDungeon's floor
-
 
     private boolean hasSavedGame = false;      // true after "Save and Quit"
     private boolean hasCompletedOrDied = false; // true after any death or siren pwned
