@@ -224,7 +224,8 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
 
     @Override
     public void onSaveAndQuit(){
-        // TODO: implement actual saving before this exits
+        saveProgressToOverallStats();
+        saveGame();
         hasSavedGame = true;
         System.exit(0);
     }
@@ -411,4 +412,38 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
     public void onBackToHub(){
         showChoosePanel();
     }
+
+    private void saveGame() {
+    try {
+        PrintWriter out = SaveManager.getWriter();
+
+        // PLAYER
+        out.println(player.getHp());
+        out.println(player.getGold());
+        out.println(countItemInInventory("Noppo Bread"));
+        out.println(countItemInInventory("Tears of a Fallen Angel"));
+
+        // UPGRADES
+        out.println(player.getUpgrades().hasShovelUpgrade());
+        out.println(player.getUpgrades().hasBatTamer());
+        out.println(player.getUpgrades().hasAirShoes());
+        out.println(player.getUpgrades().hasStewshine());
+        out.println(player.getUpgrades().hasMikanMochi());
+        out.println(player.getUpgrades().hasKurosawaMacha());
+        out.println(player.getUpgrades().hasChocoMintOnce());
+        out.println(player.getUpgrades().hasTearsOnce());
+
+        // DUNGEONS
+        for(Dungeon dungeon : dungeons){
+            out.println(dungeon.getDungeonName());
+            out.println(dungeon.getDungeonOrder());
+            out.println(dungeon.isCleared());
+        }
+
+        out.close();
+
+    } catch(IOException e){
+        e.printStackTrace();
+    }
+}
 }
