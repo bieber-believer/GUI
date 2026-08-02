@@ -66,15 +66,13 @@ public class GamePanel extends JPanel implements KeyListener {
     }
 
     private void startBatTimer(){
-        batTimer = new Timer(500, e->{floor.moveBats(); repaint();});
+        batTimer = new Timer(500, e->{floor.moveBats();checkForPlayerDeath();repaint();});
         batTimer.start();
-        checkForPlayerDeath();
     }
 
     private void startHeatTimer(){
-        heatTimer = new Timer(1000, e->{floor.checkHeatDamage();repaint();});
+        heatTimer = new Timer(1000, e->{floor.checkHeatDamage();checkForPlayerDeath();repaint();});
         heatTimer.start();
-        checkForPlayerDeath();
     }
 
     public void stopTimers(){
@@ -100,6 +98,7 @@ public class GamePanel extends JPanel implements KeyListener {
      */
     private void checkForPlayerDeath(){
         if(!player.isAlive() && playerDeathListener != null){
+            stopTimers();   
             playerDeathListener.onPlayerDeath(player.getDeathCause());
         }
     }
@@ -121,7 +120,7 @@ public class GamePanel extends JPanel implements KeyListener {
         g.setColor(Color.WHITE);
         g.drawString(floor.getDungeonName(), 10, 20);
 
-        String floorText = "Floor #" + floor.getFloorNumber();
+        String floorText = "Floor #" + floor.getFloorNumber() + " / " + floor.getDungeonNumber();
         //right align
         int textWidth = g.getFontMetrics().stringWidth(floorText);
         g.drawString(floorText, getWidth()-textWidth-10, 20);
@@ -139,7 +138,12 @@ public class GamePanel extends JPanel implements KeyListener {
         String goldText = "Gold: " + player.getGold();
 
         Item currentItem = player.getCurrentItem();
-        String itemText = "Item: " + (currentItem == null ? "None" : currentItem.getName());
+        String itemText; 
+        if(currentItem == null){
+            itemText = "Item: None";
+        } else {
+            itemText = "Item: " + currentItem.getName() + " x" + currentItem.getQuantity();
+        }
 
         int textY = barY + 20; // vertically center the text inside the bar
         g.drawString(hpText, 10, textY);
@@ -251,10 +255,13 @@ public class GamePanel extends JPanel implements KeyListener {
                 break;
         }
         repaint();
-        checkForPlayerDeath();
 
-        if(player.isAlive())
-            checkForFloorComplete();
+        // check if player has reached exit first
+        checkForFloorComplete();
+
+        // if player didnt finish floor, check their cause of death
+        checkForPlayerDeath();
+            
     }
 
     @Override
