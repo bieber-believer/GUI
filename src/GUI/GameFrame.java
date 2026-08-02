@@ -1,10 +1,12 @@
 package GUI;
 
+import Dungeon.BossFight;
 import Dungeon.Dungeon;
 import Dungeon.Floor;
 import Game.OverallStats;
 import Items.Item;
 import LivingThings.Idol;
+import LivingThings.Lailaps;
 import LivingThings.Player;
 
 import javax.swing.*;
@@ -17,7 +19,8 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
         ChooseDungeonPanel.ChooseDungeonListener,
         GamePanel.FloorCompleteListener, GamePanel.PlayerDeathListener,
         CreditsPanel.CreditsListener, StatusPanel.StatusListener,
-        InventoryPanel.InventoryListener, ShopPanel.ShopListener{
+        InventoryPanel.InventoryListener, ShopPanel.ShopListener,
+        BossFightPanel.GameWonListener, BossFightPanel.GameOverListener{
      private CardLayout cardLayout;
      private JPanel cardContainer; // holds every screen; card layout shows one at a time
 
@@ -28,6 +31,7 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
     private static final String STATUS_PANEL = "status";
     private static final String INVENTORY_PANEL = "inventory";
     private static final String SHOP_PANEL = "shop";
+    private static final String BOSS_FIGHT_PANEL = "bossFight";
 
     private Player player;
     private OverallStats overallStats;
@@ -184,8 +188,30 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
 
     @Override
     public void onFaceSiren(){
-        // TODO: hook this up once BossFight/Siren are implemented
-        JOptionPane.showMessageDialog(this, "The Siren battle isn't implemented yet!");
+        BossFight bossFight = new BossFight("/floorMaps/bossMap.txt"); //
+        Lailaps lailaps = new Lailaps(4.0f,4.0f); // spec's sample screen: "Lailaps HP: 4/4"
+        lailaps.loadImage();
+
+        try {
+            bossFight.loadBossMap(player, lailaps);
+        } catch (IOException e) {
+            System.out.println("Couldn't load boss fight: " + e.getMessage());
+            return;
+        }
+
+        if(gamePanel != null){
+            gamePanel.stopTimers();
+            cardContainer.remove(gamePanel);
+        }
+
+        BossFightPanel bossFightPanel = new BossFightPanel(bossFight);
+        bossFightPanel.setGameWonListener(this);
+        bossFightPanel.setGameOverListener(this);
+        cardContainer.add(bossFightPanel, BOSS_FIGHT_PANEL);
+
+        pack();
+        cardLayout.show(cardContainer, BOSS_FIGHT_PANEL);
+        bossFightPanel.requestFocusInWindow();
     }
 
     @Override
@@ -296,6 +322,43 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
         overallStats.addGamesLost();
         hasCompletedOrDied = true; // unlocks "New Game+" on the main menu from now on
         hasSavedGame = false;      // a dead playthrough can't be "continued"
+
+        Object[] options = { "Back to Main Menu" };
+        JOptionPane.showOptionDialog(this,
+                "You Died!\nKilled by: " + cause,
+                "Game Over",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.ERROR_MESSAGE,
+                null,
+                options,
+                options[0]);
+
+        showMainMenu();
+    }
+
+    //------------------------
+    // BossFight outcome
+    //------------------------
+    @Override
+    public void onGameWon(){
+        saveProgressToOverallStats();
+        overallStats.addNumSiren(); // tracked on the Status screen
+        hasCompletedOrDied = true;  // unlocks "New Game+"
+        hasSavedGame = false;
+
+        JOptionPane.showMessageDialog(this,
+                "Congratulations! You defeated the Siren and saved Aqours!",
+                "Victory!", JOptionPane.INFORMATION_MESSAGE);
+
+        showMainMenu();
+    }
+
+    @Override
+    public void onGameOver(String cause){
+        saveProgressToOverallStats();
+        overallStats.addGamesLost();
+        hasCompletedOrDied = true;
+        hasSavedGame = false;
 
         Object[] options = { "Back to Main Menu" };
         JOptionPane.showOptionDialog(this,

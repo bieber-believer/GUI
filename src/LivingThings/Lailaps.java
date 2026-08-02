@@ -13,7 +13,7 @@ public class Lailaps extends Entity{
      *  @param hp current HP
      *  @param maxHp maximum hp
      */
-    public Lailaps(int hp, int maxHp){
+    public Lailaps(float hp, float maxHp){
         super(hp, maxHp);
     }
 
