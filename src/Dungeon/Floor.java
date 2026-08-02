@@ -210,10 +210,18 @@ public class Floor {
     }
 
     public void moveBats(){
+        boolean attackedThisTurn = false; // bat can only attack once per turn
+        
         for(Bat bat : bats){
-            if(isAdjacent(bat.getRow(), bat.getCol(), player.getRow(), player.getCol(), bat.isMovesDiagonal())){
+            if(!attackedThisTurn && isAdjacent(bat.getRow(), bat.getCol(), player.getRow(), player.getCol(), bat.isMovesDiagonal())){
                 player.takeDamage(bat.getAtkDamage(), "Bat");
-                continue;
+                attackedThisTurn = true;
+
+            // stops moving if player died
+            if (!player.isAlive()) 
+                return;
+
+            continue;
             }
 
             // hi amber, this is a ternary operator
@@ -227,8 +235,16 @@ public class Floor {
             int newRow = bat.getRow() + rowOffsets[direction];
             int newCol = bat.getCol() + colOffsets [direction];
 
+            // dont move outside the map
+            if(!isInsideMap(newRow, newCol))
+                continue;
+
+            // wont let two bats occupy the same tile
+            if(getBatAt(newRow, newCol) != null)
+            continue;
+
             // only move if passable and water
-            if(isInsideMap(newRow, newCol) && (map[newRow][newCol].isPassable() || map[newRow][newCol].getSymbol() == 'w')){
+            if(map[newRow][newCol].isPassable() || map[newRow][newCol].getSymbol() == 'w')){
               bat.setRow(newRow);
               bat.setCol(newCol);
             }
