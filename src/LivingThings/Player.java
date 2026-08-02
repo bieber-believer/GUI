@@ -14,7 +14,6 @@ public class Player extends Entity {
     private ArrayList<Item> inventory;
     private int currentItemIndex;
     private Upgrades upgrades;
-    private boolean isAlive;
     private String deathCause;
 
     private BufferedImage image; // player sprite
@@ -25,7 +24,6 @@ public class Player extends Entity {
         this.inventory = new ArrayList<Item>();
         this.currentItemIndex = -1; // -1 if inventory is empty
         this.upgrades = new Upgrades();
-        this.isAlive = true;
         this.deathCause = null;
     }
 
@@ -191,11 +189,17 @@ public class Player extends Entity {
         if(item == null) return;
 
         item.decrementQty();
+        
         if(item.getQuantity() == 0){
             inventory.remove(item);
-            currentItemIndex = -1;
+
+            if(inventory.isEmpty()){
+                currentItemIndex = -1;
+            }else
+              currentItemIndex = 0;  
         }
     }
+    
 
     /**
      * Use the item current on hand and decremnt its quantity. If item qty drops
@@ -213,14 +217,10 @@ public class Player extends Entity {
             heal((float) 0.5); // the possible item we can get rn is only noppo bread for mco1
         } else if(item.getName().equalsIgnoreCase("Tears of a Fallen Angel")){
             heal(0.5f);
-            consumeCurrentItem();
-        }
+        } else
+            return;
 
-        item.decrementQty();
-        if(item.getQuantity() == 0){
-            inventory.remove(item);
-            currentItemIndex = -1; // players has to [ ] to have smth on hand
-        }
+        consumeCurrentItem();
     }
 
     /**
