@@ -4,6 +4,7 @@ import Dungeon.BossFight;
 import Dungeon.Dungeon;
 import Dungeon.Floor;
 import Game.OverallStats;
+import Game.SaveManager;
 import Items.Item;
 import LivingThings.Idol;
 import LivingThings.Lailaps;
@@ -12,6 +13,8 @@ import LivingThings.Player;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -169,6 +172,53 @@ public class GameFrame extends JFrame implements MenuPanel.MenuListener,
         overallStats.setNoppoBreadCount(countItemInInventory("Noppo Bread"));
         overallStats.setTearsOfAngelCount(countItemInInventory("Tears of a Fallen Angel"));
     }
+
+private void saveGame(){
+    try{
+        PrintWriter out = SaveManager.getWriter();
+
+        //------------------------
+        // PLAYER
+        //------------------------
+        out.println("HP=" + player.getHp());
+        out.println("GOLD=" + player.getGold());
+        out.println("BREAD=" + countItemInInventory("Noppo Bread"));
+        out.println("TEARS=" + countItemInInventory("Tears of a Fallen Angel"));
+
+        //------------------------
+        // UPGRADES
+        //------------------------
+        out.println("SHOVEL=" + player.getUpgrades().hasShovelUpgrade());
+        out.println("BATTAMER=" + player.getUpgrades().hasBatTamer());
+        out.println("AIRSHOES=" + player.getUpgrades().hasAirShoes());
+        out.println("STEWSHINE=" + player.getUpgrades().hasStewshine());
+        out.println("MIKANMOCHI=" + player.getUpgrades().hasMikanMochi());
+        out.println("KUROSAWAMACHA=" + player.getUpgrades().hasKurosawaMacha());
+        out.println("CHOCOMINT=" + player.getUpgrades().hasChocoMintOnce());
+        out.println("TEARSONCE=" + player.getUpgrades().hasTearsOnce());
+
+        //------------------------
+        // DUNGEONS
+        //------------------------
+        for(Dungeon dungeon : dungeons){
+            out.println("NAME=" + dungeon.getDungeonName());
+            out.println("ORDER=" + dungeon.getDungeonOrder());
+            out.println("CLEARED=" + dungeon.isCleared());
+        }
+
+        //------------------------
+        // IDOLS
+        //------------------------
+        for(Idol idol : idolsToRescue){
+            out.println("IDOL=" + idol.getName());
+        }
+
+        out.close();
+
+    }catch(IOException e){
+        e.printStackTrace();
+    }
+}
 
     private int countItemInInventory(String itemName){
         for(Item item : player.getInventory()){
