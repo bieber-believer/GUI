@@ -20,18 +20,18 @@ public class Floor {
     protected int dungeonNumber; // the number of dungeons the player had done/is doing (1,2,3)
 
     protected Player player; // the player
-    private Random random;
+    protected Random random;
 
     //------------------------
     // for bat movement
     //------------------------
     // moves in 4 directions (up,down, left, right)
-    private static final int[] STRAIGHT_ROW_OFFSETS = {-1, 1, 0, 0};
-    private static final int[] STRAIGHT_COL_OFFSETS = {0, 0, -1, 1};
+    protected static final int[] STRAIGHT_ROW_OFFSETS = {-1, 1, 0, 0};
+    protected static final int[] STRAIGHT_COL_OFFSETS = {0, 0, -1, 1};
 
     //moves in 8 directions, the 4 directions + diagonal
-    private static final int[] ALL_ROW_OFFSETS = {-1, 1, 0, 0, -1, -1, 1, 1};
-    private static final int[] ALL_COL_OFFSETS = {0, 0, -1, 1, -1, 1, -1, 1};
+    protected static final int[] ALL_ROW_OFFSETS = {-1, 1, 0, 0, -1, -1, 1, 1};
+    protected static final int[] ALL_COL_OFFSETS = {0, 0, -1, 1, -1, 1, -1, 1};
 
     public Floor(int dungeonNumber, String dungeonName, int floorNumber, String fileName){
         this.dungeonNumber = dungeonNumber;
@@ -39,6 +39,12 @@ public class Floor {
         this.floorNumber = floorNumber;
         this.fileName = fileName;
         this.escaped = false;
+        bats = new ArrayList<Bat>();
+        random = new Random();
+    }
+
+    //for boss fight
+    protected Floor(){
         bats = new ArrayList<Bat>();
         random = new Random();
     }
@@ -122,18 +128,7 @@ public class Floor {
         Tile target = map[newRow][newCol];
 
         // attacks the beat instead of walk so bat drops gold
-        Bat bat = getBatAt(newRow, newCol);
-        if(bat != null){
-            bats.remove(bat);
-            target.setSymbol('g');
-            try {
-                target.tileProperties(); // loads gold sprite + correct passable/diggable/damage for 'g'
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            target.setGoldValue(bat.getGoldDrop()); // gold amount is separate, set it after
-            return;
-        }
+        if(attackBatIfPresent(newRow, newCol)) return;
 
         // treasure chest check
         if(target.getSymbol() == 'T'){
@@ -216,7 +211,7 @@ public class Floor {
 
     public void moveBats(){
         for(Bat bat : bats){
-            if(isAdjacentToPlayer(bat)){
+            if(isAdjacent(bat.getRow(), bat.getCol(), player.getRow(), player.getCol(), bat.isMovesDiagonal())){
                 player.takeDamage(bat.getAtkDamage(), "Bat");
                 continue;
             }
@@ -255,18 +250,51 @@ public class Floor {
         return null; // bat not found
     }
 
-    private boolean isAdjacentToPlayer(Bat bat){
-        int rowDiff = Math.abs(bat.getRow() - player.getRow());
-        int colDiff = Math.abs(bat.getCol() - player.getCol());
+    private boolean isAdjacent(int r1, int c1, int r2, int c2, boolean diagonal){
+        int rowDiff = Math.abs(r1 - r2);
+        int colDiff = Math.abs(c1 - c2);
+        if(rowDiff == 0 && colDiff == 0) return false; // same tile, not "adjacent"
 
-        if (rowDiff == 0 && colDiff == 0) return false; // same tile, not "adjacent"
-
-        if (bat.isMovesDiagonal()) {
+        if (diagonal) {
             // 3rd dungeon bats: any of the 8 surrounding tiles counts
             return rowDiff <= 1 && colDiff <= 1;
         } else {
             // 1st/2nd dungeon bats: only up/down/left/right counts
             return (rowDiff == 1 && colDiff == 0) || (rowDiff == 0 && colDiff == 1);
+        }
+    }
+
+    protected void setTileSymbol(int row, int col, char symbol){
+        Tile tile = map[row][col];
+        tile.setSymbol(symbol);
+        try {
+            tile.tileProperties();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * If there's a bat at (row, col), kills it and turns that tile
+     * into gold. Returns true if a bat was actually there, so the caller
+     * knows to stop (treat it as an attack, not a walk).
+     */
+    protected boolean attackBatIfPresent(int row, int col){
+        Bat bat = getBatAt(row, col);
+        if(bat == null) return false;
+
+        bats.remove(bat);
+        setTileSymbol(row, col, 'g');
+        map[row][col].setGoldValue(bat.getGoldDrop());
+        return true;
+    }
+
+    protected void collectGoldIfPresent(Player collector, int row, int col){
+        Tile tile = map[row][col];
+        if(tile.getGoldValue() > 0){
+            collector.addGold(tile.getGoldValue());
+            tile.setGoldValue(0);
+            setTileSymbol(row, col, '.');
         }
     }
 
