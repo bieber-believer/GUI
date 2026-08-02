@@ -133,6 +133,13 @@ public class BossFight extends Floor{
         if(!isInsideMap(row, col)) return false; // inherited
         Tile tile = map[row][col];
         if(!tile.isPassable() && getBatAt(row, col) == null) return false; // bats "block" like walls until attacked
+        if(isYohane){
+            if(row == lailaps.getRow() && col == lailaps.getCol())
+                return false;
+        }else{
+            if(row == player.getRow() && col == player.getCol())
+                return false;
+        }
         if(sirenReleased && !isYohane && row == siren.getRow() && col == siren.getCol()) return false;
         return true;
     }
@@ -310,10 +317,10 @@ public class BossFight extends Floor{
     private void checkForGameOver(){
         if(!player.isAlive()){
             battleLost = true;
-            lossCause = "Siren";
+            lossCause = player.getDeathCause();
         } else if(!lailaps.isAlive()){
             battleLost = true;
-            lossCause = "Siren (Lailaps was hit)";
+            lossCause = "Lailaps died :<";
         }
     }
 
