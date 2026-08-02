@@ -1,23 +1,28 @@
 package LivingThings;
 
-public class Lailaps {
-    private int row;
-    private int col;
-    private float hp;
-    private float maxHp;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+
+public class Lailaps extends Entity{
+    private BufferedImage image; // for sprite
 
     /**
-     * Creates Lailaps at the given position
+     * Creates Lailaps
      *
-     *  @param row starting row
-     *  @param col starting column
+     *  @param hp current HP
+     *  @param maxHp maximum hp
      */
-    public Lailaps(int row, int col) {
-        this.row = row;
-        this.col = col;
+    public Lailaps(int hp, int maxHp){
+        super(hp, maxHp);
+    }
 
-        this.hp = 4.0f;
-        this.maxHp = 4.0f;
+    public void loadImage(){
+        try{
+            image = ImageIO.read(getClass().getResourceAsStream("/entities/lailaps.png"));
+        }catch (IOException e){
+            System.out.println("Couldn't load bat sprite: " + e.getMessage());
+        }
     }
 
     /**
